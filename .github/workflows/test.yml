@@ -1,0 +1,54 @@
+name: Test CPU Monitor1
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, "3.10", "3.11", "3.12"]
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Test import
+      run: |
+        python -c "from cpu_monitor_enhanced import CPUMonitorApp; print('✓ Import successful')"
+    
+    - name: Test syntax
+      run: |
+        python -m py_compile cpu_monitor_enhanced.py
+        python -m py_compile demo.py
+    
+    - name: Test JSON files
+      run: |
+        python -c "import json; json.load(open('settings.json')); print('✓ settings.json valid')"
+        python -c "import json; json.load(open('monitored_apps.json')); print('✓ monitored_apps.json valid')"
+    
+    - name: Test requirements
+      run: |
+        python -c "import tkinter; print('✓ tkinter available')"
+        python -c "import psutil; print('✓ psutil available')"
+        python -c "import json; print('✓ json available')"
+        python -c "import threading; print('✓ threading available')"
+        python -c "import time; print('✓ time available')"
+        python -c "import os; print('✓ os available')"
+        python -c "import subprocess; print('✓ subprocess available')"
+        python -c "import logging; print('✓ logging available')"
+        python -c "from datetime import datetime; print('✓ datetime available')"

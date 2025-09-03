@@ -1,0 +1,1 @@
+g{"cpu_threshold": 15.0, "check_interval": 5.0, "startup_delay": 3.0, "auto_restart_enabled": true}
