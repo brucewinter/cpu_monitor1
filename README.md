@@ -85,7 +85,7 @@ A powerful Windows application for monitoring CPU usage of specific applications
 
 2. **Run the application**:
    ```bash
-   python cpu_monitor_enhanced.py
+   python cpu_monitor1.py
    ```
 
 ## 🎯 Usage
@@ -213,7 +213,7 @@ The application includes comprehensive debugging:
 
 ```
 cpu_monitor1/
-├── cpu_monitor_enhanced.py    # Main application
+├── cpu_monitor1.py            # Main application
 ├── requirements.txt            # Python dependencies
 ├── install.bat                # Windows installer
 ├── run_cpu_monitor.bat        # Windows launcher
