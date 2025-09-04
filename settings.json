@@ -1,1 +1,1 @@
-{"cpu_threshold": 15.0, "check_interval": 5.0, "startup_delay": 3.0, "monitoring_startup_delay": 10.0, "auto_restart_enabled": true, "version": "2.0.0", "release_date": "2024-12-19"}
+{"cpu_threshold": 50.0, "check_interval": 5.0, "startup_delay": 3.0, "monitoring_startup_delay": 10.0, "cpu_threshold_duration": 60.0, "filter_reolink_errors": true, "gpu_filter_factor": 0.7, "auto_restart_enabled": true}

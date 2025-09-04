@@ -1,5 +1,5 @@
 # Enhanced CPU Monitor with Pause/Resume and Better App Management
-# Version 2.4 - Increased Height & Activity Log Visibility
+# Version 2.3 - Auto-Start Monitoring & Enhanced GPU Filtering
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import psutil
@@ -14,7 +14,7 @@ import sys
 import io
 
 # Application version
-APP_VERSION = "2.4"
+APP_VERSION = "2.3"
 
 class FilteredOutput:
     """Custom output filter to catch and filter Reolink error messages"""

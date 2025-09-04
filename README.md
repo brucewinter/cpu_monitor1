@@ -4,16 +4,18 @@ A powerful Windows application for monitoring CPU usage of specific applications
 
 ## 🚀 Features
 
-- **Real-time CPU Monitoring**: Monitor multiple applications simultaneously with accurate CPU percentage readings
+- **Real-time CPU Monitoring**: Monitor multiple applications simultaneously with accurate CPU percentage readings (CPU only, with configurable GPU filtering)
 - **Smart Process Detection**: Automatically detects processes by name, executable path, and running instances
-- **Automatic App Restart**: Restart applications when CPU usage exceeds configurable thresholds
+- **Automatic App Restart**: Restart applications when CPU usage exceeds configurable thresholds for a specified duration
 - **Auto-recovery**: Automatically restart crashed or terminated applications
 - **Configurable Delays**: 
   - **Startup Delay**: Wait time before restarting apps (default: 3 seconds)
   - **Monitoring Startup Delay**: Wait time before starting monitoring to allow CPU normalization (default: 10 seconds)
+  - **CPU Threshold Duration**: Time CPU must stay above threshold before restarting (default: 30 seconds)
 - **Process Discovery**: Automatically find executable paths for monitored applications
 - **Pause/Resume**: Pause monitoring without losing configuration
 - **Comprehensive Logging**: Detailed activity log with timestamps
+- **Error Filtering**: Option to filter out Reolink app error messages from console
 - **Modern UI**: Clean, dark-themed interface with intuitive controls
 
 ## 📋 Requirements
@@ -21,6 +23,38 @@ A powerful Windows application for monitoring CPU usage of specific applications
 - Windows 10/11
 - Python 3.7+
 - Required Python packages (see `requirements.txt`)
+
+## 🔄 Recent Changes
+
+### Version 2.4 - Increased Height & Activity Log Visibility
+- **Increased Height**: Made app 20% taller (900x960) to show full activity log
+- **Better Visibility**: All UI elements including activity log are now fully visible
+- **Improved Layout**: Better spacing and visibility for monitoring information
+
+### Version 2.3 - Auto-Start Monitoring & Enhanced GPU Filtering
+- **Auto-Start Monitoring**: Automatically starts monitoring when app launches (if apps are configured)
+- **Enhanced GPU Filtering**: More aggressive default filtering (0.5 = 50% of raw CPU) for better Task Manager accuracy
+- **Taller Interface**: Increased height to 900x800 to ensure all UI elements are visible
+- **Smart Auto-Start**: Only auto-starts if there are enabled apps to monitor
+
+### Version 2.2 - GPU Filtering & Improved CPU Accuracy
+- **GPU Filtering**: Configurable factor to filter out GPU-related CPU usage
+- **Improved CPU Accuracy**: More accurate CPU monitoring that better matches Task Manager
+- **Configurable Filtering**: Adjustable GPU filter factor (default: 0.5 = 50% of raw CPU)
+- **Taller Interface**: Increased height to 900x750 to show all UI elements
+
+### Version 2.1 - Compact UI & Version Display
+- **Compact Interface**: Reduced window size to 900x650 for better fit on smaller screens
+- **Version Display**: Clear version number shown in title and UI
+- **Optimized Layout**: Reduced padding and spacing for more efficient use of screen space
+
+### Version 2.0 - Enhanced CPU Monitoring
+- **CPU-Only Monitoring**: Now monitors CPU usage exclusively, excluding GPU usage
+- **Time-Based Thresholds**: CPU must exceed threshold for specified duration before restart
+- **Visual Status Indicators**: Clear warning states and countdown timers
+- **Enhanced UI**: New threshold duration setting with helpful tooltips
+- **Context Menu**: Right-click to reset threshold timers manually
+- **Error Filtering**: Option to filter out Reolink app error messages from console (while app is running)
 
 ## 🛠️ Installation
 
@@ -72,6 +106,13 @@ A powerful Windows application for monitoring CPU usage of specific applications
 
 ### Advanced Features
 
+#### CPU Threshold Duration
+- **New Feature**: CPU must stay above the threshold for a specified duration before restarting
+- Prevents unnecessary restarts from temporary CPU spikes
+- Configurable duration (default: 30 seconds)
+- Visual indicators show warning state and countdown to restart
+- Right-click context menu allows manual reset of threshold timer
+
 #### Discover Executables
 - Click "Discover Executables" to automatically find and set executable paths
 - Useful for applications that aren't in the system PATH
@@ -80,9 +121,31 @@ A powerful Windows application for monitoring CPU usage of specific applications
 - Click "Debug CPU" to test CPU monitoring in real-time
 - Shows detailed process information and CPU usage
 
+#### Auto-Start Monitoring
+- **Automatic Launch**: Monitoring starts automatically when the app launches (after 2 seconds)
+- **Smart Detection**: Only auto-starts if there are enabled apps to monitor
+- **No Manual Start**: No need to click "Start Monitoring" - it happens automatically
+- **Configurable**: Can still manually start/stop/pause monitoring as needed
+
+#### GPU Filtering
+- **GPU Filter Factor**: Configurable setting to filter out GPU-related CPU usage
+- **Default Value**: 0.5 (50% of raw CPU reading) - More aggressive filtering
+- **Adjustable**: Lower values = more aggressive GPU filtering, Higher values = less filtering
+- **Better Accuracy**: Helps match Task Manager CPU readings more closely
+- **Example**: If raw CPU shows 20%, with factor 0.5, displayed CPU will be 10%
+
+#### Error Filtering
+- **Reolink Error Filter**: Option to filter out common Reolink app error messages from console output
+- **System-Level Filtering**: Intercepts stdout/stderr to catch messages before they reach the console
+- **Test Button**: Use "Test Filter" button to verify filtering is working correctly
+- **Note**: Filtering only works while the CPU Monitor application is running
+- Reduces console clutter while maintaining full logging in the UI
+- Configurable setting that can be enabled/disabled as needed
+
 #### Right-click Context Menu
 - Right-click on any monitored app for additional options:
   - Set Executable Path manually
+  - Reset Threshold Timer (clears the warning state)
   - Remove application from monitoring
 
 #### Pause/Resume Monitoring
@@ -98,6 +161,9 @@ A powerful Windows application for monitoring CPU usage of specific applications
   "check_interval": 5.0,
   "startup_delay": 3.0,
   "monitoring_startup_delay": 10.0,
+  "cpu_threshold_duration": 30.0,
+  "filter_reolink_errors": true,
+  "gpu_filter_factor": 0.5,
   "auto_restart_enabled": true
 }
 ```

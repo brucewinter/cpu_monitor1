@@ -1,1 +1,1 @@
-[{"name": "reolink", "process_name": "reolink", "status": "Active", "enabled": true, "last_cpu": 28.4, "restart_count": 0, "executable_path": "C:\\Program Files\\reolink\\reolink.exe"}]
+[{"name": "reolink", "process_name": "reolink", "status": "Auto-Restarted", "enabled": true, "last_cpu": 23.380000000000003, "restart_count": 12, "executable_path": "C:\\Program Files\\reolink\\reolink.exe", "threshold_exceeded_time": null}]
