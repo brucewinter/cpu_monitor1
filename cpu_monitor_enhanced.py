@@ -828,7 +828,7 @@ class CPUMonitorApp:
                 if process_count == 0 and self.auto_restart_enabled:
                     if app["status"] != "Terminated":
                         app["status"] = "Terminated"
-                        self.log_message(f"DETECTED: {app["name"]} has been terminated")
+                        self.log_message(f"DETECTED: {app['name']} has been terminated")
                         self.restart_terminated_app(app)
 
                 # Check if CPU exceeds threshold
@@ -838,23 +838,23 @@ class CPUMonitorApp:
                     # If this is the first time exceeding threshold, record the time
                     if app.get("threshold_exceeded_time") is None:
                         app["threshold_exceeded_time"] = current_time
-                        self.log_message(f"WARNING: {app["name"]} CPU usage: {cpu_percent:.1f}% (exceeds {self.cpu_threshold}%) - Starting threshold timer")
+                        self.log_message(f"WARNING: {app['name']} CPU usage: {cpu_percent:.1f}% (exceeds {self.cpu_threshold}%) - Starting threshold timer")
                     
                     # Check if CPU has been above threshold for the required duration
                     elif current_time - app["threshold_exceeded_time"] >= self.cpu_threshold_duration:
-                        self.log_message(f"CRITICAL: {app["name"]} CPU usage: {cpu_percent:.1f}% (exceeds {self.cpu_threshold}% for {self.cpu_threshold_duration}s) - Restarting")
+                        self.log_message(f"CRITICAL: {app['name']} CPU usage: {cpu_percent:.1f}% (exceeds {self.cpu_threshold}% for {self.cpu_threshold_duration}s) - Restarting")
                         self.restart_app(app)
                         # Reset the timer after restart
                         app["threshold_exceeded_time"] = None
                     else:
                         # Still above threshold but not long enough
                         remaining_time = self.cpu_threshold_duration - (current_time - app["threshold_exceeded_time"])
-                        self.log_message(f"WARNING: {app["name"]} CPU usage: {cpu_percent:.1f}% (exceeds {self.cpu_threshold}%) - {remaining_time:.1f}s remaining before restart")
+                        self.log_message(f"WARNING: {app['name']} CPU usage: {cpu_percent:.1f}% (exceeds {self.cpu_threshold}%) - {remaining_time:.1f}s remaining before restart")
                 
                 # If CPU is below threshold, reset the timer
                 elif app.get("threshold_exceeded_time") is not None:
                     app["threshold_exceeded_time"] = None
-                    self.log_message(f"INFO: {app["name"]} CPU usage normalized: {cpu_percent:.1f}% (below {self.cpu_threshold}%)")
+                    self.log_message(f"INFO: {app['name']} CPU usage normalized: {cpu_percent:.1f}% (below {self.cpu_threshold}%)")
 
                 # Update status if app is running normally
                 elif process_count > 0 and app["status"] in ["Terminated", "Restarting"]:
