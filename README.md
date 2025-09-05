@@ -4,7 +4,7 @@ A powerful Windows application for monitoring CPU usage of specific applications
 
 ## 🚀 Features
 
-- **Real-time CPU Monitoring**: Monitor multiple applications simultaneously with accurate CPU percentage readings (CPU only, with configurable GPU filtering)
+- **Real-time CPU Monitoring**: Monitor multiple applications simultaneously with accurate CPU percentage readings
 - **Smart Process Detection**: Automatically detects processes by name, executable path, and running instances
 - **Automatic App Restart**: Restart applications when CPU usage exceeds configurable thresholds for a specified duration
 - **Auto-recovery**: Automatically restart crashed or terminated applications
@@ -15,8 +15,8 @@ A powerful Windows application for monitoring CPU usage of specific applications
 - **Process Discovery**: Automatically find executable paths for monitored applications
 - **Pause/Resume**: Pause monitoring without losing configuration
 - **Comprehensive Logging**: Detailed activity log with timestamps
-- **Error Filtering**: Option to filter out Reolink app error messages from console
 - **Modern UI**: Clean, dark-themed interface with intuitive controls
+- **Consolidated Codebase**: Single, well-organized file with type hints and clean code structure
 
 ## 📋 Requirements
 
@@ -26,13 +26,17 @@ A powerful Windows application for monitoring CPU usage of specific applications
 
 ## 🔄 Recent Changes
 
+### Version 2.5 - Consolidated and Cleaned Codebase
+- **Code Consolidation**: Merged all versions into single `cpu_monitor_main.py` file
+- **Type Hints**: Added type annotations for better code readability and IDE support
+- **Clean Imports**: Removed unused imports and organized import statements
+- **Standardized Versioning**: Consistent version numbering across the codebase
+- **Simplified Structure**: Single main file with all functionality preserved
+
 ### Version 2.4 - Increased Height & Activity Log Visibility
-- **Increased Height**: Made app 20% taller (900x960) to show full activity log
+- **Increased Height**: Made app 20% taller (900x1152) to show more activity log
 - **Better Visibility**: All UI elements including activity log are now fully visible
 - **Improved Layout**: Better spacing and visibility for monitoring information
-
-### Version 2.3 - Auto-Start Monitoring & Enhanced GPU Filtering
-- **Auto-Start Monitoring**: Automatically starts monitoring when app launches (if apps are configured)
 - **Enhanced GPU Filtering**: More aggressive default filtering (0.5 = 50% of raw CPU) for better Task Manager accuracy
 - **Taller Interface**: Increased height to 900x800 to ensure all UI elements are visible
 - **Smart Auto-Start**: Only auto-starts if there are enabled apps to monitor

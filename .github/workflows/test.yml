@@ -29,14 +29,12 @@ jobs:
     
     - name: Test import
       run: |
-        python -c "import cpu_monitor1; print('✓ cpu_monitor1.py import successful')"
-        python -c "import cpu_monitor_enhanced; print('✓ cpu_monitor_enhanced.py import successful')"
+        python -c "import cpu_monitor_main; print('✓ cpu_monitor_main.py import successful')"
         python -c "import demo; print('✓ demo.py import successful')"
     
     - name: Test syntax
       run: |
-        python -m py_compile cpu_monitor1.py
-        python -m py_compile cpu_monitor_enhanced.py
+        python -m py_compile cpu_monitor_main.py
         python -m py_compile demo.py
     
     - name: Test JSON files
