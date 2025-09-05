@@ -15,6 +15,7 @@ import io
 
 # Application version
 APP_VERSION = "2.3"
+# Fixed syntax errors in f-strings
 
 class FilteredOutput:
     """Custom output filter to catch and filter Reolink error messages"""
