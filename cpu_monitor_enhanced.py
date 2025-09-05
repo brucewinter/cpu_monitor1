@@ -16,47 +16,6 @@ import io
 # Application version
 APP_VERSION = "2.4"
 
-class FilteredOutput:
-    """Custom output filter to catch and filter Reolink error messages"""
-    def __init__(self, original_stream, filter_enabled=True):
-        self.original_stream = original_stream
-        self.filter_enabled = filter_enabled
-        
-    def write(self, text):
-        if self.filter_enabled and self._should_filter(text):
-            # Don't write filtered messages
-            return
-        self.original_stream.write(text)
-        
-    def _should_filter(self, text):
-        """Check if text should be filtered"""
-        if not text.strip():
-            return False
-            
-        # Filter out any text containing Reolink error patterns
-        reolink_error_patterns = [
-            "handle this channel cmd:",
-            "e_bc_cmd_get_wifi_signal",
-            "handle:",
-            "channel:",
-            "cmd param: undefined",
-            "-------",
-            "e_bc_cmd",
-            "cmd param:",
-            "undefined"
-        ]
-        
-        text_lower = text.lower()
-        for pattern in reolink_error_patterns:
-            if pattern.lower() in text_lower:
-                return True
-        return False
-        
-    def flush(self):
-        self.original_stream.flush()
-        
-    def __getattr__(self, attr):
-        return getattr(self.original_stream, attr)
 
 class CPUMonitorApp:
     def __init__(self, root):
@@ -84,13 +43,7 @@ class CPUMonitorApp:
         self.monitoring_startup_delay = 10.0  # New: delay before monitoring starts
         self.auto_restart_enabled = True
         self.cpu_threshold_duration = 30.0  # New: time in seconds CPU must be above threshold before restarting
-        self.filter_reolink_errors = True  # New: filter out Reolink error messages from console
-        self.gpu_filter_factor = 0.5  # New: factor to filter out GPU-related CPU usage (0.5 = 50% of raw CPU, more aggressive)
         
-        # Set up output filtering
-        self.original_stdout = sys.stdout
-        self.original_stderr = sys.stderr
-        self.setup_output_filtering()
 
         # Load saved settings
         self.load_settings()
@@ -98,35 +51,7 @@ class CPUMonitorApp:
         self.setup_ui()
         self.setup_styles()
         
-    def setup_output_filtering(self):
-        """Set up stdout/stderr filtering for Reolink error messages"""
-        if self.filter_reolink_errors:
-            sys.stdout = FilteredOutput(sys.stdout, True)
-            sys.stderr = FilteredOutput(sys.stderr, True)
-            if hasattr(self, 'filter_status_label'):
-                self.filter_status_label.config(text="(Active)", fg="#00ff88")
-        else:
-            sys.stdout = self.original_stdout
-            sys.stderr = self.original_stderr
-            if hasattr(self, 'filter_status_label'):
-                self.filter_status_label.config(text="(Disabled)", fg="#ff4444")
             
-    def test_output_filter(self):
-        """Test the output filter by printing some test messages"""
-        self.log_message("=== Testing Output Filter ===")
-        
-        # Test messages that should be filtered
-        print("------- handle this channel cmd: E_BC_CMD_GET_WIFI_SIGNAL")
-        print("handle: 1000001")
-        print("channel: -1")
-        print("cmd param: undefined")
-        
-        # Test messages that should NOT be filtered
-        print("This is a normal message that should appear")
-        print("CPU usage is normal")
-        
-        self.log_message("=== Filter Test Complete ===")
-        self.log_message("Check console output above to see if filtering is working")
 
     def setup_styles(self):
         style = ttk.Style()
@@ -282,76 +207,7 @@ class CPUMonitorApp:
                              bg="#3c3c3c")
         help_label.pack(side="left", padx=(10, 0))
 
-        # Filter Reolink errors checkbox
-        filter_errors_frame = tk.Frame(settings_frame, bg="#3c3c3c")
-        filter_errors_frame.pack(fill="x", padx=20, pady=5)  # Reduced padding
-
-        self.filter_errors_var = tk.BooleanVar(value=self.filter_reolink_errors)
-        filter_errors_checkbox = tk.Checkbutton(filter_errors_frame,
-                                              text="Filter Reolink error messages from console",
-                                              variable=self.filter_errors_var,
-                                              font=("Segoe UI", 10, "bold"),
-                                              fg="#ffffff",
-                                              bg="#3c3c3c",
-                                              activeforeground="#ffffff",
-                                              activebackground="#3c3c3c",
-                                              selectcolor="#00ff88")
-        filter_errors_checkbox.pack(side="left")
         
-        # Help text for filter setting
-        filter_help_label = tk.Label(filter_errors_frame,
-                                    text="(Filters while app is running only)",
-                                    font=("Segoe UI", 8),
-                                    fg="#cccccc",
-                                    bg="#3c3c3c")
-        filter_help_label.pack(side="left", padx=(10, 0))
-        
-        # Test filter button
-        test_filter_btn = tk.Button(filter_errors_frame,
-                                   text="Test Filter",
-                                   command=self.test_output_filter,
-                                   font=("Segoe UI", 8),
-                                   bg="#4444ff",
-                                   fg="#ffffff",
-                                   relief="flat",
-                                   padx=10)
-        test_filter_btn.pack(side="left", padx=(10, 0))
-        
-        # Filter status label
-        self.filter_status_label = tk.Label(filter_errors_frame,
-                                           text="",
-                                           font=("Segoe UI", 8),
-                                           fg="#00ff88",
-                                           bg="#3c3c3c")
-        self.filter_status_label.pack(side="left", padx=(10, 0))
-        
-        # GPU Filter Factor setting
-        gpu_filter_frame = tk.Frame(settings_frame, bg="#3c3c3c")
-        gpu_filter_frame.pack(fill="x", padx=20, pady=5)
-
-        tk.Label(gpu_filter_frame,
-                text="GPU Filter Factor:",
-                font=("Segoe UI", 10, "bold"),
-                fg="#ffffff",
-                bg="#3c3c3c").pack(side="left", padx=(0, 10))
-
-        self.gpu_filter_var = tk.StringVar(value=str(self.gpu_filter_factor))
-        gpu_filter_entry = tk.Entry(gpu_filter_frame,
-                                   textvariable=self.gpu_filter_var,
-                                   font=("Segoe UI", 10),
-                                   width=10,
-                                   bg="#4a4a4a",
-                                   fg="#ffffff",
-                                   insertbackground="#ffffff")
-        gpu_filter_entry.pack(side="left")
-        
-        # Help text for GPU filter
-        gpu_filter_help_label = tk.Label(gpu_filter_frame,
-                                        text="(0.5 = 50% of raw CPU, lower = more aggressive GPU filtering)",
-                                        font=("Segoe UI", 8),
-                                        fg="#cccccc",
-                                        bg="#3c3c3c")
-        gpu_filter_help_label.pack(side="left", padx=(10, 0))
 
         # Auto-restart checkbox
         restart_frame = tk.Frame(settings_frame, bg="#3c3c3c")
@@ -578,9 +434,6 @@ class CPUMonitorApp:
         # Load existing apps
         self.load_monitored_apps()
         
-        # Update filter status
-        self.setup_output_filtering()
-        
         # Auto-start monitoring if apps are configured
         self.root.after(2000, self.auto_start_monitoring)  # Start after 2 seconds
         
@@ -706,12 +559,7 @@ class CPUMonitorApp:
             self.startup_delay = float(self.startup_delay_var.get())
             self.monitoring_startup_delay = float(self.monitoring_startup_delay_var.get())
             self.cpu_threshold_duration = float(self.threshold_duration_var.get())
-            self.filter_reolink_errors = self.filter_errors_var.get()
-            self.gpu_filter_factor = float(self.gpu_filter_var.get())
             self.auto_restart_enabled = self.auto_restart_var.get()
-            
-            # Update output filtering based on new setting
-            self.setup_output_filtering()
         except ValueError:
             messagebox.showerror("Error", "Please enter valid numbers for threshold, interval, delays, and duration")
             return
@@ -897,8 +745,8 @@ class CPUMonitorApp:
                         # Second call should give us the actual CPU usage
                         raw_cpu = proc.cpu_percent()
                         
-                        # Apply CPU-only filtering to exclude GPU-related usage
-                        cpu = self._filter_gpu_usage(raw_cpu, proc)
+                        # Use raw CPU usage
+                        cpu = raw_cpu
                         
                         total_cpu += cpu
                         process_count += 1
@@ -915,29 +763,6 @@ class CPUMonitorApp:
 
         return total_cpu, process_count
         
-    def _filter_gpu_usage(self, raw_cpu, proc):
-        """Filter out GPU-related CPU usage to get true CPU-only percentage"""
-        try:
-            # Get process CPU times to calculate more accurate CPU usage
-            cpu_times = proc.cpu_times()
-            
-            # Calculate CPU usage based on user time (excludes system/kernel time which may include GPU)
-            # This gives us a more accurate representation of actual CPU work
-            if hasattr(cpu_times, 'user'):
-                # Use configurable factor to filter out GPU overhead
-                filtered_cpu = raw_cpu * self.gpu_filter_factor
-                
-                # Ensure we don't go below 0
-                filtered_cpu = max(0.0, filtered_cpu)
-                
-                return filtered_cpu
-            
-            # Fallback: use raw CPU but with some filtering
-            return raw_cpu * self.gpu_filter_factor
-            
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
-            # If we can't get CPU times, use configurable filtering
-            return raw_cpu * self.gpu_filter_factor
 
     def restart_app(self, app):
         try:
@@ -1309,12 +1134,8 @@ class CPUMonitorApp:
         timestamp = datetime.now().strftime("%H:%M:%S")
         log_entry = f"[{timestamp}] {message}\n"
         
-        # Also print to console for debugging, but filter out Reolink error messages if enabled
-        if self.filter_reolink_errors and self._is_reolink_error(message):
-            # Don't print to console, but still log to the UI
-            pass
-        else:
-            print(f"LOG: {log_entry.strip()}")
+        # Also print to console for debugging
+        print(f"LOG: {log_entry.strip()}")
         
         # Update log in main thread with error handling
         try:
@@ -1327,26 +1148,6 @@ class CPUMonitorApp:
             except Exception as e2:
                 print(f"Fallback log update also failed: {e2}")
 
-    def _is_reolink_error(self, message):
-        """Check if a message is a Reolink error that should be filtered from console output"""
-        # Filter out common Reolink error patterns
-        reolink_error_patterns = [
-            "handle this channel cmd:",
-            "E_BC_CMD_GET_WIFI_SIGNAL",
-            "handle:",
-            "channel:",
-            "cmd param: undefined",
-            "-------",  # Filter out separator lines
-            "e_bc_cmd",  # Filter out other Reolink command errors
-            "cmd param:",
-            "undefined"
-        ]
-        
-        message_lower = message.lower()
-        for pattern in reolink_error_patterns:
-            if pattern.lower() in message_lower:
-                return True
-        return False
 
     def update_log(self, log_entry):
         try:
@@ -1366,8 +1167,6 @@ class CPUMonitorApp:
             "startup_delay": self.startup_delay,
             "monitoring_startup_delay": self.monitoring_startup_delay,
             "cpu_threshold_duration": self.cpu_threshold_duration,
-            "filter_reolink_errors": self.filter_reolink_errors,
-            "gpu_filter_factor": self.gpu_filter_factor,
             "auto_restart_enabled": self.auto_restart_enabled
         }
 
@@ -1387,8 +1186,6 @@ class CPUMonitorApp:
                     self.startup_delay = settings.get("startup_delay", 3.0)
                     self.monitoring_startup_delay = settings.get("monitoring_startup_delay", 10.0)
                     self.cpu_threshold_duration = settings.get("cpu_threshold_duration", 30.0)
-                    self.filter_reolink_errors = settings.get("filter_reolink_errors", True)
-                    self.gpu_filter_factor = settings.get("gpu_filter_factor", 0.5)
                     self.auto_restart_enabled = settings.get("auto_restart_enabled", True)
         except Exception as e:
             logging.error(f"Error loading settings: {str(e)}")
@@ -1420,11 +1217,6 @@ class CPUMonitorApp:
             self.stop_monitoring()
         self.save_settings()
         self.save_monitored_apps()
-        
-        # Restore original stdout/stderr
-        sys.stdout = self.original_stdout
-        sys.stderr = self.original_stderr
-        
         self.root.destroy()
 
 def main():
