@@ -29,10 +29,12 @@ jobs:
     
     - name: Test import
       run: |
-        python -c "from cpu_monitor_enhanced import CPUMonitorApp; print('✓ Import successful')"
+        python -c "from cpu_monitor1 import CPUMonitorApp; print('✓ cpu_monitor1.py import successful')"
+        python -c "from cpu_monitor_enhanced import CPUMonitorApp; print('✓ cpu_monitor_enhanced.py import successful')"
     
     - name: Test syntax
       run: |
+        python -m py_compile cpu_monitor1.py
         python -m py_compile cpu_monitor_enhanced.py
         python -m py_compile demo.py
     
