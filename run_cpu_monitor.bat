@@ -4,5 +4,5 @@ echo.
 echo Make sure you have Python installed and dependencies are installed.
 echo If you haven't installed dependencies yet, run: pip install -r requirements.txt
 echo.
-python cpu_monitor_main.py
+python cpu_monitor1.py
 pause
