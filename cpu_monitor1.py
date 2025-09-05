@@ -1,5 +1,5 @@
 # Enhanced CPU Monitor with Pause/Resume and Better App Management
-# Version 2.5 - Consolidated and Cleaned Codebase
+# Version 2.6 - Added Notification System
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import psutil
@@ -12,9 +12,13 @@ from datetime import datetime
 import logging
 import sys
 from typing import List, Dict, Optional, Tuple
+import smtplib
+import requests
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 # Application version
-APP_VERSION = "2.5"
+APP_VERSION = "2.6"
 
 
 class CPUMonitorApp:
@@ -43,6 +47,18 @@ class CPUMonitorApp:
         self.monitoring_startup_delay = 10.0  # New: delay before monitoring starts
         self.auto_restart_enabled = True
         self.cpu_threshold_duration = 30.0  # New: time in seconds CPU must be above threshold before restarting
+        
+        # Notification settings
+        self.windows_notifications_enabled = True
+        self.email_notifications_enabled = False
+        self.sms_notifications_enabled = False
+        self.email_smtp_server = "smtp.gmail.com"
+        self.email_smtp_port = 587
+        self.email_username = ""
+        self.email_password = ""
+        self.email_recipients = []
+        self.sms_api_key = ""
+        self.sms_phone_numbers = []
         
 
         # Load saved settings
@@ -224,6 +240,55 @@ class CPUMonitorApp:
                                         activebackground="#3c3c3c",
                                         selectcolor="#00ff88")
         restart_checkbox.pack(side="left")
+
+        # Notification settings frame
+        notification_frame = tk.Frame(settings_frame, bg="#3c3c3c")
+        notification_frame.pack(fill="x", padx=20, pady=5)
+
+        tk.Label(notification_frame,
+                text="Notification Settings:",
+                font=("Segoe UI", 12, "bold"),
+                fg="#ffffff",
+                bg="#3c3c3c").pack(anchor="w")
+
+        # Windows notifications checkbox
+        self.windows_notifications_var = tk.BooleanVar(value=self.windows_notifications_enabled)
+        windows_notifications_checkbox = tk.Checkbutton(notification_frame,
+                                                      text="Windows notifications (popup + sound)",
+                                                      variable=self.windows_notifications_var,
+                                                      font=("Segoe UI", 10),
+                                                      fg="#ffffff",
+                                                      bg="#3c3c3c",
+                                                      activeforeground="#ffffff",
+                                                      activebackground="#3c3c3c",
+                                                      selectcolor="#00ff88")
+        windows_notifications_checkbox.pack(anchor="w")
+
+        # Email notifications checkbox
+        self.email_notifications_var = tk.BooleanVar(value=self.email_notifications_enabled)
+        email_notifications_checkbox = tk.Checkbutton(notification_frame,
+                                                    text="Email notifications (configure in settings.json)",
+                                                    variable=self.email_notifications_var,
+                                                    font=("Segoe UI", 10),
+                                                    fg="#ffffff",
+                                                    bg="#3c3c3c",
+                                                    activeforeground="#ffffff",
+                                                    activebackground="#3c3c3c",
+                                                    selectcolor="#00ff88")
+        email_notifications_checkbox.pack(anchor="w")
+
+        # SMS notifications checkbox
+        self.sms_notifications_var = tk.BooleanVar(value=self.sms_notifications_enabled)
+        sms_notifications_checkbox = tk.Checkbutton(notification_frame,
+                                                  text="SMS notifications (configure in settings.json)",
+                                                  variable=self.sms_notifications_var,
+                                                  font=("Segoe UI", 10),
+                                                  fg="#ffffff",
+                                                  bg="#3c3c3c",
+                                                  activeforeground="#ffffff",
+                                                  activebackground="#3c3c3c",
+                                                  selectcolor="#00ff88")
+        sms_notifications_checkbox.pack(anchor="w")
 
         # App management frame
         app_frame = ttk.Frame(self.root, style="Custom.TFrame")
@@ -560,6 +625,9 @@ class CPUMonitorApp:
             self.monitoring_startup_delay = float(self.monitoring_startup_delay_var.get())
             self.cpu_threshold_duration = float(self.threshold_duration_var.get())
             self.auto_restart_enabled = self.auto_restart_var.get()
+            self.windows_notifications_enabled = self.windows_notifications_var.get()
+            self.email_notifications_enabled = self.email_notifications_var.get()
+            self.sms_notifications_enabled = self.sms_notifications_var.get()
         except ValueError:
             messagebox.showerror("Error", "Please enter valid numbers for threshold, interval, delays, and duration")
             return
@@ -852,6 +920,9 @@ class CPUMonitorApp:
                     app["restart_count"] += 1
                     app["status"] = "Restarted"
                     
+                    # Send notifications
+                    self.send_all_notifications(app_name, "cpu_threshold", app['last_cpu'])
+                    
                     # Show notification
                     messagebox.showinfo("App Restarted",
                                       f"{app_name} has been restarted due to high CPU usage ({app['last_cpu']:.1f}%)")
@@ -924,6 +995,9 @@ class CPUMonitorApp:
             if restart_success:
                 app["restart_count"] += 1
                 app["status"] = "Auto-Restarted"
+                
+                # Send notifications
+                self.send_all_notifications(app_name, "auto_restart")
                 
                 # Show notification
                 messagebox.showinfo("App Auto-Restarted",
@@ -1167,7 +1241,17 @@ class CPUMonitorApp:
             "startup_delay": self.startup_delay,
             "monitoring_startup_delay": self.monitoring_startup_delay,
             "cpu_threshold_duration": self.cpu_threshold_duration,
-            "auto_restart_enabled": self.auto_restart_enabled
+            "auto_restart_enabled": self.auto_restart_enabled,
+            "windows_notifications_enabled": self.windows_notifications_enabled,
+            "email_notifications_enabled": self.email_notifications_enabled,
+            "sms_notifications_enabled": self.sms_notifications_enabled,
+            "email_smtp_server": self.email_smtp_server,
+            "email_smtp_port": self.email_smtp_port,
+            "email_username": self.email_username,
+            "email_password": self.email_password,
+            "email_recipients": self.email_recipients,
+            "sms_api_key": self.sms_api_key,
+            "sms_phone_numbers": self.sms_phone_numbers
         }
 
         try:
@@ -1187,6 +1271,16 @@ class CPUMonitorApp:
                     self.monitoring_startup_delay = settings.get("monitoring_startup_delay", 10.0)
                     self.cpu_threshold_duration = settings.get("cpu_threshold_duration", 30.0)
                     self.auto_restart_enabled = settings.get("auto_restart_enabled", True)
+                    self.windows_notifications_enabled = settings.get("windows_notifications_enabled", True)
+                    self.email_notifications_enabled = settings.get("email_notifications_enabled", False)
+                    self.sms_notifications_enabled = settings.get("sms_notifications_enabled", False)
+                    self.email_smtp_server = settings.get("email_smtp_server", "smtp.gmail.com")
+                    self.email_smtp_port = settings.get("email_smtp_port", 587)
+                    self.email_username = settings.get("email_username", "")
+                    self.email_password = settings.get("email_password", "")
+                    self.email_recipients = settings.get("email_recipients", [])
+                    self.sms_api_key = settings.get("sms_api_key", "")
+                    self.sms_phone_numbers = settings.get("sms_phone_numbers", [])
         except Exception as e:
             logging.error(f"Error loading settings: {str(e)}")
 
@@ -1211,6 +1305,100 @@ class CPUMonitorApp:
                     self.update_app_tree()
         except Exception as e:
             logging.error(f"Error loading monitored apps: {str(e)}")
+
+    def send_windows_notification(self, title: str, message: str) -> None:
+        """Send Windows toast notification"""
+        try:
+            if self.windows_notifications_enabled:
+                # Use Windows 10/11 toast notifications
+                import winsound
+                import ctypes
+                from ctypes import wintypes
+                
+                # Play notification sound
+                winsound.MessageBeep(winsound.MB_ICONEXCLAMATION)
+                
+                # Show Windows notification
+                ctypes.windll.user32.MessageBoxW(0, message, title, 0x40)  # 0x40 = MB_ICONINFORMATION
+                
+        except Exception as e:
+            self.log_message(f"Failed to send Windows notification: {str(e)}")
+
+    def send_email_notification(self, subject: str, message: str) -> None:
+        """Send email notification"""
+        try:
+            if not self.email_notifications_enabled or not self.email_username or not self.email_password:
+                return
+                
+            msg = MIMEMultipart()
+            msg['From'] = self.email_username
+            msg['To'] = ", ".join(self.email_recipients)
+            msg['Subject'] = subject
+            
+            msg.attach(MIMEText(message, 'plain'))
+            
+            server = smtplib.SMTP(self.email_smtp_server, self.email_smtp_port)
+            server.starttls()
+            server.login(self.email_username, self.email_password)
+            
+            text = msg.as_string()
+            server.sendmail(self.email_username, self.email_recipients, text)
+            server.quit()
+            
+            self.log_message(f"Email notification sent to {len(self.email_recipients)} recipients")
+            
+        except Exception as e:
+            self.log_message(f"Failed to send email notification: {str(e)}")
+
+    def send_sms_notification(self, message: str) -> None:
+        """Send SMS notification using Twilio API"""
+        try:
+            if not self.sms_notifications_enabled or not self.sms_api_key:
+                return
+                
+            # Using Twilio API (you'll need to install: pip install twilio)
+            from twilio.rest import Client
+            
+            # Twilio credentials (you'll need to set these up)
+            account_sid = self.sms_api_key  # This should be your Twilio Account SID
+            auth_token = ""  # You'll need to add this to settings
+            
+            client = Client(account_sid, auth_token)
+            
+            for phone_number in self.sms_phone_numbers:
+                message_obj = client.messages.create(
+                    body=message,
+                    from_='+1234567890',  # Your Twilio phone number
+                    to=phone_number
+                )
+                
+            self.log_message(f"SMS notification sent to {len(self.sms_phone_numbers)} numbers")
+            
+        except ImportError:
+            self.log_message("Twilio not installed. Install with: pip install twilio")
+        except Exception as e:
+            self.log_message(f"Failed to send SMS notification: {str(e)}")
+
+    def send_all_notifications(self, app_name: str, restart_type: str, cpu_usage: float = 0.0) -> None:
+        """Send all enabled notifications for app restart"""
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        if restart_type == "cpu_threshold":
+            title = f"App Restarted - {app_name}"
+            message = f"{app_name} was restarted due to high CPU usage ({cpu_usage:.1f}%) at {timestamp}"
+        else:
+            title = f"App Auto-Restarted - {app_name}"
+            message = f"{app_name} was automatically restarted after being terminated at {timestamp}"
+        
+        # Send notifications in separate threads to avoid blocking
+        if self.windows_notifications_enabled:
+            threading.Thread(target=self.send_windows_notification, args=(title, message), daemon=True).start()
+        
+        if self.email_notifications_enabled:
+            threading.Thread(target=self.send_email_notification, args=(title, message), daemon=True).start()
+        
+        if self.sms_notifications_enabled:
+            threading.Thread(target=self.send_sms_notification, args=(message,), daemon=True).start()
 
     def on_closing(self):
         if self.monitoring:
