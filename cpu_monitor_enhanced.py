@@ -21,9 +21,9 @@ class CPUMonitorApp:
     def __init__(self, root):
         self.root = root
         self.root.title(f"Enhanced CPU Monitor & App Restarter v{APP_VERSION}")
-        self.root.geometry("900x960")  # 20% taller to show activity log
+        self.root.geometry("900x1152")  # 20% taller to show more activity log
         self.root.configure(bg="#2b2b2b")
-        self.root.minsize(800, 900)  # Increased minimum height
+        self.root.minsize(800, 1100)  # Increased minimum height
 
         # Configure logging
         logging.basicConfig(
@@ -1228,9 +1228,9 @@ def main():
 
     # Center window on screen with fixed size
     root.update_idletasks()
-    x = (root.winfo_screenwidth() // 2) - 450  # Center 900x960 window
-    y = (root.winfo_screenheight() // 2) - 480
-    root.geometry(f"900x960+{x}+{y}")
+    x = (root.winfo_screenwidth() // 2) - 450  # Center 900x1152 window
+    y = (root.winfo_screenheight() // 2) - 576
+    root.geometry(f"900x1152+{x}+{y}")
 
     root.mainloop()
 
